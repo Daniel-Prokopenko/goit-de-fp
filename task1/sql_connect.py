@@ -24,7 +24,7 @@ bio_df = (
     spark.read.format("jdbc")
     .options(
         url=jdbc_url,
-        driver="com.mysql.cj.jdbc.Driver",
+        driver="com.mysql.jdbc.Driver",
         dbtable=jdbc_table,
         user=jdbc_user,
         password=jdbc_password,
@@ -32,13 +32,17 @@ bio_df = (
     .load()
 )
 
-events_df = (
-    spark.readStream.format("kafka")
-    .option("kafka.bootstrap.servers", kafka_config["bootstrap_servers"][0])
-    .option("subscribe", "athlete_event_results")
-    .option("startingOffsets", "latest")
+events_df = spark.readStream.format("kafka") \
+    .option("kafka.bootstrap.servers", kafka_config["bootstrap_servers"][0]) \
+    .option("subscribe", "athlete_event_results") \
+    .option("kafka.security.protocol", kafka_config["security_protocol"]) \
+    .option("kafka.sasl.mechanism", kafka_config["sasl_mechanism"]) \
+    .option("kafka.sasl.jaas.config",
+            f'org.apache.kafka.common.security.plain.PlainLoginModule required username="{kafka_config["username"]}" '
+            f'password="{kafka_config["password"]}";') \
+    .option("startingOffsets", "latest") \
+    .option("maxOffsetsPerTrigger", "500") \
     .load()
-)
 
 schema = (
     StructType()

@@ -1,7 +1,4 @@
 from pyspark.sql import SparkSession
-from kafka import KafkaProducer
-import json
-import uuid
 from configs import kafka_config
 
 # # Налаштування конфігурації SQL бази даних
@@ -33,7 +30,7 @@ bio_df = (
     .load()
 )
 
-# bio_df.show()
+bio_df.show()
 
 jdbc_table = "athlete_event_results"
 
@@ -51,11 +48,11 @@ events_df = (
 
 events_df = events_df.drop("country_noc")
 
-# events_df.show()
+events_df.show()
 
 joined_df = bio_df.join(events_df, on="athlete_id", how="inner")
 
-# joined_df.show()
+joined_df.show()
 
 joined_df.createOrReplaceTempView("joined")
 
@@ -68,39 +65,3 @@ result = spark.sql(
                         GROUP BY sport, medal, sex, country_noc
                         ORDER BY sport, medal, sex, country_noc"""
 ).show()
-
-
-# def send_to_kafka(df, epoch_id):
-#     if df.isEmpty():
-#         return
-
-#     producer = KafkaProducer(
-#         bootstrap_servers=kafka_config["bootstrap_servers"],
-#         security_protocol=kafka_config["security_protocol"],
-#         sasl_mechanism=kafka_config["sasl_mechanism"],
-#         sasl_plain_username=kafka_config["username"],
-#         sasl_plain_password=kafka_config["password"],
-#         value_serializer=lambda v: json.dumps(v).encode("utf-8"),
-#         key_serializer=lambda v: str(v).encode("utf-8"),
-#     )
-
-#     topic_name = "danylo_athlete_stats"
-
-#     for row in df.collect():
-#         data = row.asDict()
-#         key = str(uuid.uuid4())
-#         try:
-#             producer.send(topic_name, key=key, value=data)
-#             print(f"Row {data} sent to topic!")
-#         except Exception as e:
-#             print(f"[Kafka Error] {e}")
-
-#     producer.flush()
-#     producer.close()
-
-# result.writeStream \
-#     .foreachBatch(send_to_kafka) \
-#     .outputMode("update") \
-#     .option("checkpointLocation", "/tmp/checkpoints/kafka_stream") \
-#     .start() \
-#     .awaitTermination()

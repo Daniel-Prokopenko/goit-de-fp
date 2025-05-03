@@ -16,21 +16,21 @@ with DAG(
 ) as dag:
 
     landing_to_bronze = SparkSubmitOperator(
-        application=os.path.join(base_path, "task2", "landing_to_bronze.py"),
+        application=os.path.join(base_path, "landing_to_bronze.py"),
         task_id="landing_to_bronze",
         conn_id="spark-default",
         verbose=1,
     )
 
     bronze_to_silver = SparkSubmitOperator(
-        application=os.path.join(base_path, "task2", "bronze_to_silver.py"),
+        application=os.path.join(base_path, "bronze_to_silver.py"),
         task_id="bronze_to_silver",
         conn_id="spark-default",
         verbose=1,
     )
 
     silver_to_gold = SparkSubmitOperator(
-        application=os.path.join(base_path, "task2", "silver_to_gold.py"),
+        application=os.path.join(base_path, "silver_to_gold.py"),
         task_id="silver_to_gold",
         conn_id="spark-default",
         verbose=1,
